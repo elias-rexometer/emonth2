@@ -30,6 +30,7 @@
   31	- Special allocation in JeeLib RFM12 driver - Node31 can communicate with nodes on any network group
   -------------------------------------------------------------------------------------------------------------
   Change log:
+  V3.2.3   - (13/06/17) Add Software Debounce (impulse duration must be greater then PULSE_MIN_DURATION in ms), changed interrupt to falling edge (important otherwise this software debounce does not work)
   V3.2.2   - (12/05/17) Fix DIP switch nodeID not being read when EEPROM is configures
   V3.2.1   - (30/11/16) Fix emonTx port typo
   V3.2.0   - (13/11/16) Run-time serial nodeID config
@@ -70,6 +71,7 @@ const unsigned long WDT_MAX_NUMBER = 690;                             // Data se
                                                                       // 690x 80 = 55.2 seconds (it needs to be about 5s less than the record interval in emoncms)
 const  unsigned long PULSE_MAX_NUMBER = 100;                          // Data sent after PULSE_MAX_NUMBER pulses
 const  unsigned long PULSE_MAX_DURATION = 50;
+const  unsigned int PULSE_MIN_DURATION = 25;                         // Mimimal pulse duration for software debounce
 
 
 #define RF69_COMPAT 1                                                 // Set to 1 if using RFM69CW or 0 is using RFM12B
@@ -298,7 +300,7 @@ void setup() {
   pulseCount = 0;
   WDT_number=720;
   p = 0;
-  attachInterrupt(pulse_countINT, onPulse, RISING);
+  attachInterrupt(pulse_countINT, onPulse, FALLING);
 
   //################################################################################################################################
   // RF Config mode
@@ -470,8 +472,22 @@ void dodelay(unsigned int ms)
 // The interrupt routine - runs each time a rising edge of a pulse is detected
 void onPulse()
 {
-  p=1;                                       // flag for new pulse set to true
-  pulseCount++;                              // number of pulses since the last RF sent
+  int samples[PULSE_MIN_DURATION];
+  const unsigned int max_array_index = PULSE_MIN_DURATION-1;
+  int sum = 0;
+  delay(2);
+  //check if impulse is longer then PULSE_MIN_DURATION
+  for(int i=0;i++;i<=max_array_index){
+    samples[i] = digitalRead(pulse_count_pin);
+    delay(1);
+  }
+  for(int i=0;i++;i<=max_array_index){
+    sum =+ samples[i];
+  }
+  if(sum<=2){
+    p=1;                                       // flag for new pulse set to true
+    pulseCount++;                              // number of pulses since the last RF sent
+  }
 }
 
 // Used to test for RFM69CW prescence
