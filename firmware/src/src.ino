@@ -30,6 +30,7 @@
   31	- Special allocation in JeeLib RFM12 driver - Node31 can communicate with nodes on any network group
   -------------------------------------------------------------------------------------------------------------
   Change log:
+  V3.2.4   - (17/07/17) Fix DIP switch had no effect
   V3.2.3   - (13/06/17) Add Software Debounce (impulse duration must be greater then PULSE_MIN_DURATION in ms), changed interrupt to falling edge (important otherwise this software debounce does not work)
   V3.2.2   - (12/05/17) Fix DIP switch nodeID not being read when EEPROM is configures
   V3.2.1   - (30/11/16) Fix emonTx port typo
@@ -199,15 +200,16 @@ void setup() {
  RF_STATUS=1;
 
   if (RF_STATUS==1){
-    load_config();                                                        // Load RF config from EEPROM (if any exist
-    if (debug) Serial.println("Int RFM...");
-    rf12_initialize(nodeID, RF_freq, networkGroup);                       // Initialize RFM
+    load_config();                                                        // Load RF config from EEPROM (if any exist)
 
     // Add effect of DIP switch positions to nodeID
     if ((DIP1 == HIGH) && (DIP2 == HIGH)) nodeID=nodeID;
     if ((DIP1 == LOW) && (DIP2 == HIGH)) nodeID=nodeID+1;
     if ((DIP1 == HIGH) && (DIP2 == LOW)) nodeID=nodeID+2;
     if ((DIP1 == LOW) && (DIP2 == LOW)) nodeID=nodeID+3;
+    
+    if (debug) Serial.println("Int RFM...");
+    rf12_initialize(nodeID, RF_freq, networkGroup);                       // Initialize RFM
 
     if (debug){
       Serial.println("RFM Started");
